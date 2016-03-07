@@ -75,7 +75,8 @@ https://github.com/doedje/jquery.soap/blob/1.6.8/README.md
 			data: config.data,
 			name: (!!config.elementName) ? config.elementName : config.method,
 			context: config.context,
-			prefix: (!!config.namespaceQualifier && !config.noPrefix) ? config.namespaceQualifier+':' : ''
+			prefix: (!!config.namespaceQualifier && !config.noPrefix) ? config.namespaceQualifier+':' : '',
+                        attrs: config.attrs
 		});
 
 		if (!!config.namespaceQualifier && !!config.namespaceURL) {
@@ -497,14 +498,14 @@ https://github.com/doedje/jquery.soap/blob/1.6.8/README.md
 				soapObject = SOAPTool.array2soap(options);
 			} else if ($.isPlainObject(options.data)) {
 				// if data is JSON, parse to SOAPObject
-				soapObject = SOAPTool.json2soap(options.name, options.data, options.prefix);
+				soapObject = SOAPTool.json2soap(options.name, options.data, options.prefix, null, options.attrs);
 			} else if ($.isFunction(options.data)) {
 				// if data is function, the function should return a SOAPObject
 				soapObject = options.data.call(options.context, SOAPObject);
 			}
 			return soapObject;
 		},
-		json2soap: function (name, params, prefix, parentNode) {
+		json2soap: function (name, params, prefix, parentNode, attrs) {
 			var soapObject;
 			var childObject;
 			if (params === null) {
@@ -528,7 +529,7 @@ https://github.com/doedje/jquery.soap/blob/1.6.8/README.md
 				} else {
 					soapObject = new SOAPObject(prefix+name);
 					for(var y in params) {
-						childObject = this.json2soap(y, params[y], prefix, soapObject);
+						childObject = this.json2soap(y, params[y], prefix, soapObject, attrs);
 						if (childObject) {
 							soapObject.appendChild(childObject);
 						}
@@ -541,6 +542,17 @@ https://github.com/doedje/jquery.soap/blob/1.6.8/README.md
 				soapObject = new SOAPObject(prefix+name);
 				soapObject.val(params);
 			}
+                        
+                        if (attrs) {
+                          for (var key in attrs) {
+                            if (soapObject.name === key) {
+                              var childAttrs = attrs[key];
+                              for (var childKey in childAttrs) {
+                                soapObject.attr(childKey, childAttrs[childKey]);
+                              }
+                            }
+                          }
+                        }
 			return soapObject;
 		},
 		dom2soap: function (xmldom) {
